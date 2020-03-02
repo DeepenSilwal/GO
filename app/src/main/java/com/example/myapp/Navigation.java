@@ -17,7 +17,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class  SecondActivity extends FragmentActivity implements OnMapReadyCallback {
+public class Navigation extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private Button ClaimAddress;
@@ -27,15 +27,11 @@ public class  SecondActivity extends FragmentActivity implements OnMapReadyCallb
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_second);
+        setContentView(R.layout.activity_navigation);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-
 
     }
 
@@ -53,7 +49,7 @@ public class  SecondActivity extends FragmentActivity implements OnMapReadyCallb
         profilebutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(SecondActivity.this, ThirdActivity.class));
+                startActivity(new Intent(Navigation.this, UserPortal.class));
             }
         });
     }
