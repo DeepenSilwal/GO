@@ -1,5 +1,8 @@
 package com.example.myapp;
 
+/**
+ * user object class to create user
+ */
 public class UserObject {
 
     private String FullName;

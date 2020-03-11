@@ -31,6 +31,9 @@ public class SignUp extends AppCompatActivity {
     private static final String TAG = "";
     private TextView SignIn;
 
+    /**
+     * databaseUser to add the user to firebase database
+     */
     DatabaseReference databaseUser;
 
     @Override
@@ -55,6 +58,9 @@ public class SignUp extends AppCompatActivity {
                 String fullname = FullName.getText().toString();
                 String confpaswd = ConfirmPassword.getText().toString();
 
+                /**
+                 * if-else conditions to check if all the fields are filled
+                 */
                 if(emailID.isEmpty()){
                     Email.setError("Please Provide Your Email");
                     Email.requestFocus();
@@ -74,6 +80,9 @@ public class SignUp extends AppCompatActivity {
                 else if(!(paswd.equals(confpaswd))){
                     Toast.makeText(SignUp.this, "Password Does Not Match", Toast.LENGTH_SHORT).show();
                 }
+                /**
+                 * if all the fields are filled then the following method is implemented
+                 */
                 else if (!(emailID.isEmpty() && paswd.isEmpty() && fullname.isEmpty() && confpaswd.isEmpty())){
 
                     mAuth.createUserWithEmailAndPassword(emailID,paswd).addOnCompleteListener(SignUp.this, new OnCompleteListener<AuthResult>() {
@@ -83,7 +92,14 @@ public class SignUp extends AppCompatActivity {
                                Toast.makeText(SignUp.this.getApplicationContext(), "SignUp Unsuccessfull: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                            }
                            else{
+                               /**
+                                * add user method called here
+                                */
                                addUser();
+
+                               /**
+                                * Firebase authentication implemented here
+                                */
                                Log.d(TAG, "createUserWithEmail:success");
                                FirebaseUser user = mAuth.getCurrentUser();
                                startActivity(new Intent(SignUp.this, com.example.myapp.SignIn.class));
@@ -97,6 +113,10 @@ public class SignUp extends AppCompatActivity {
             }
 
         });
+
+        /**
+         * On Click to the sing in button sign in page will be displayed
+         */
         SignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,6 +126,9 @@ public class SignUp extends AppCompatActivity {
 
     }
 
+    /**
+     * Method to add user to database implemented
+     */
     private void addUser(){
         String emailID = Email.getText().toString().trim();
         String fullname = FullName.getText().toString();

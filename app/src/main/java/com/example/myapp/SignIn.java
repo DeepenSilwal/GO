@@ -43,21 +43,29 @@ public class SignIn extends AppCompatActivity {
          SignIn.setOnClickListener(new View.OnClickListener() {
              @Override
                 public void onClick(View v) {
-                    validate(Email.getText().toString(), Password.getText().toString());
+                 /**
+                  * validate method called here on clicking sing in button
+                  */
+                 validate(Email.getText().toString(), Password.getText().toString());
 
                 }
             });
-         SignUp.setOnClickListener(new View.OnClickListener() {
+
+        /**
+         * On clicking sign up sign up, the sign up page will be opened using following methods
+         */
+        SignUp.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     createAccount();
-
                 }
         });
 
     }
 
-
+    /**
+     * method to validate user name and password
+     */
     private void validate(String userName, String userPassword){
         if(userName.isEmpty()){
             Email.setError("Please Provide Your Email");
@@ -78,6 +86,9 @@ public class SignIn extends AppCompatActivity {
                             if(!task.isSuccessful()){
                                 Toast.makeText(com.example.myapp.SignIn.this, "Not sucessfull", Toast.LENGTH_SHORT).show();
                             }
+                            /**
+                             * upon successfully sign in navigation page will be displayed using following activity
+                             */
                             else{
                                 startActivity(new Intent(com.example.myapp.SignIn.this, Navigation.class));
                             }
@@ -90,6 +101,9 @@ public class SignIn extends AppCompatActivity {
 
     }
 
+    /**
+     * starting sing up page implemented here
+     */
     private void createAccount(){
             Intent intent = new Intent(com.example.myapp.SignIn.this, SignUp.class);
             startActivity(intent);
