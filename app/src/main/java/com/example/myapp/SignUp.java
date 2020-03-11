@@ -17,6 +17,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class SignUp extends AppCompatActivity {
 
@@ -29,6 +31,10 @@ public class SignUp extends AppCompatActivity {
     private static final String TAG = "";
     private TextView SignIn;
 
+    /**
+     * databaseUser to add the user to firebase database
+     */
+    DatabaseReference databaseUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +48,8 @@ public class SignUp extends AppCompatActivity {
         SignUp = (Button)findViewById(R.id.SignUp);
         SignIn = (TextView)findViewById(R.id.signin);
 
+        databaseUser = FirebaseDatabase.getInstance().getReference("UserObject");
+
         SignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -49,6 +57,10 @@ public class SignUp extends AppCompatActivity {
                 String paswd = Password.getText().toString();
                 String fullname = FullName.getText().toString();
                 String confpaswd = ConfirmPassword.getText().toString();
+
+                /**
+                 * if-else conditions to check if all the fields are filled
+                 */
                 if(emailID.isEmpty()){
                     Email.setError("Please Provide Your Email");
                     Email.requestFocus();
@@ -68,7 +80,11 @@ public class SignUp extends AppCompatActivity {
                 else if(!(paswd.equals(confpaswd))){
                     Toast.makeText(SignUp.this, "Password Does Not Match", Toast.LENGTH_SHORT).show();
                 }
+                /**
+                 * if all the fields are filled then the following method is implemented
+                 */
                 else if (!(emailID.isEmpty() && paswd.isEmpty() && fullname.isEmpty() && confpaswd.isEmpty())){
+
                     mAuth.createUserWithEmailAndPassword(emailID,paswd).addOnCompleteListener(SignUp.this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
@@ -76,9 +92,17 @@ public class SignUp extends AppCompatActivity {
                                Toast.makeText(SignUp.this.getApplicationContext(), "SignUp Unsuccessfull: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                            }
                            else{
+                               /**
+                                * add user method called here
+                                */
+                               addUser();
+
+                               /**
+                                * Firebase authentication implemented here
+                                */
                                Log.d(TAG, "createUserWithEmail:success");
                                FirebaseUser user = mAuth.getCurrentUser();
-                               startActivity(new Intent(SignUp.this, MainActivity.class));
+                               startActivity(new Intent(SignUp.this, com.example.myapp.SignIn.class));
                            }
                         }
                     });
@@ -86,16 +110,35 @@ public class SignUp extends AppCompatActivity {
                 else{
                     Toast.makeText(SignUp.this, "Error", Toast.LENGTH_SHORT).show();
                 }
-
-
             }
+
         });
+
+        /**
+         * On Click to the sing in button sign in page will be displayed
+         */
         SignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent (SignUp.this, MainActivity.class));
+                startActivity(new Intent (SignUp.this, com.example.myapp.SignIn.class));
             }
         });
+
+    }
+
+    /**
+     * Method to add user to database implemented
+     */
+    private void addUser(){
+        String emailID = Email.getText().toString().trim();
+        String fullname = FullName.getText().toString();
+        String paswd = Password.getText().toString();
+        String confpaswd = ConfirmPassword.getText().toString();
+
+        String id = databaseUser.push().getKey();//create a unique id
+        UserObject user = new UserObject(fullname, emailID);
+        databaseUser.child(id).setValue(user);
+
 
     }
     
