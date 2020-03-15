@@ -7,6 +7,13 @@ public class UserObject {
 
     private String FullName;
     private String Email;
+
+    public UserObject(String fullName, String email, String address) {
+        FullName = fullName;
+        Email = email;
+        Address = address;
+    }
+
     private String Address;
 
     public UserObject(){

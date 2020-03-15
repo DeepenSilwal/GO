@@ -84,7 +84,9 @@ public class SignUp extends AppCompatActivity {
                  * if all the fields are filled then the following method is implemented
                  */
                 else if (!(emailID.isEmpty() && paswd.isEmpty() && fullname.isEmpty() && confpaswd.isEmpty())){
-
+                    /**
+                     * Authentication email and password is saved for authentication and in user object
+                     */
                     mAuth.createUserWithEmailAndPassword(emailID,paswd).addOnCompleteListener(SignUp.this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
@@ -92,16 +94,14 @@ public class SignUp extends AppCompatActivity {
                                Toast.makeText(SignUp.this.getApplicationContext(), "SignUp Unsuccessfull: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                            }
                            else{
+
+                               Log.d(TAG, "createUserWithEmail:success");
+
                                /**
                                 * add user method called here
                                 */
                                addUser();
 
-                               /**
-                                * Firebase authentication implemented here
-                                */
-                               Log.d(TAG, "createUserWithEmail:success");
-                               FirebaseUser user = mAuth.getCurrentUser();
                                startActivity(new Intent(SignUp.this, com.example.myapp.SignIn.class));
                            }
                         }
@@ -132,10 +132,16 @@ public class SignUp extends AppCompatActivity {
     private void addUser(){
         String emailID = Email.getText().toString().trim();
         String fullname = FullName.getText().toString();
-        String paswd = Password.getText().toString();
-        String confpaswd = ConfirmPassword.getText().toString();
 
-        String id = databaseUser.push().getKey();//create a unique id
+        /**
+         * Get the user id generated in authentication
+         */
+        FirebaseUser userid = mAuth.getCurrentUser();
+        String id = userid.getUid();
+
+        /**
+         * User object is saved in database inside userobject
+         */
         UserObject user = new UserObject(fullname, emailID);
         databaseUser.child(id).setValue(user);
 
