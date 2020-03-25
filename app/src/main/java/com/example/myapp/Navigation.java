@@ -1,11 +1,8 @@
 package com.example.myapp;
 
 import android.content.Intent;
-import android.location.Geocoder;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -23,20 +20,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 public class Navigation extends FragmentActivity implements OnMapReadyCallback {
 
@@ -44,6 +35,7 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
     private Button ClaimAddress;
     private EditText StartLocation;
     private EditText EndLocation;
+    private Button Start;
     private ImageButton profilebutton;
 
 
@@ -51,6 +43,9 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
     private DatabaseReference mRef;
 
     private String standardAddress;
+
+    private Polyline currentPolyline;
+
 
 
     /**
@@ -78,12 +73,18 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
         profilebutton = (ImageButton)findViewById(R.id.imageButton);
         ClaimAddress = (Button)findViewById(R.id.button2);
 
+        /**
+         * Adding Navigation information such as start location, end location and start button
+         */
+        StartLocation =(EditText)findViewById(R.id.editText2);
+        EndLocation = (EditText)findViewById(R.id.editText3);
+        Start = (Button)findViewById(R.id.startbutton);
 
 
         mMap = googleMap;
         // Add a marker in Kathmandu, Nepal, and move the camera.
         LatLng Nepal = new LatLng(27.605064, 85.363617);
-        mMap.addMarker(new MarkerOptions().position(Nepal).title("Marker in Kathmandu").draggable(true));
+        mMap.addMarker(new MarkerOptions().position(Nepal).title("Random Location").draggable(true));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Nepal));
         mMap.setMinZoomPreference(14);
         mMap.setMapType(mMap.MAP_TYPE_HYBRID);
@@ -95,9 +96,6 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
         mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
-                LatLng fromposition = marker.getPosition();
-                //Log.d(getClass().getSimpleName(), String.format("Drag from %f:%f", fromposition.latitude,fromposition.longitude));
-                //Toast.makeText(Navigation.this,String.format("Drag from %f:%f",fromposition.latitude,fromposition.longitude),Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -105,15 +103,13 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
 
             }
 
+            /**
+             * Method excuted when the user drags the marker and stops at the end position
+             * @param marker
+             */
             @Override
             public void onMarkerDragEnd(Marker marker) {
                 LatLng toposition = marker.getPosition();
-                //Log.d(getClass().getSimpleName(), String.format("Drag from %f:%f", position.latitude,position.longitude));
-                //Toast.makeText(Navigation.this,String.format("Drag from %f:%f",position.latitude,position.longitude),Toast.LENGTH_LONG).show();
-                /**
-                 * shows the snippet of latitude and logitude
-                 */
-                //Toast.makeText(getApplicationContext(),"Marker " + toposition,Toast.LENGTH_LONG).show();
 
                 /**
                  * Get the latitude and longitude form the marker
@@ -121,7 +117,6 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                 final Double lat = toposition.latitude;
                 final Double lon = toposition.longitude;
 
-                //Toast.makeText(getApplicationContext(),"Marker " + lat + " , "+ lon,Toast.LENGTH_LONG).show();
 
                 mDatabase = FirebaseDatabase.getInstance();
                 mRef = mDatabase.getReference();
@@ -143,29 +138,28 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                              * This Address class represented is used to retrieve data as objects
                              */
                             Address address = obj.getValue(Address.class);
-                            //Toast.makeText(getApplicationContext(),address.left_log + address.right_log + address.top_lat + address.bottom_lat,Toast.LENGTH_LONG).show();
 
                             /**
                              * All the variables below is the value of latitude and longitude matrix read from firebase database
                              */
-                            fireLeftLong = Double.valueOf(address.left_log);
-                            fireRightLong = Double.valueOf(address.right_log);
-                            fireTopLat = Double.valueOf(address.top_lat);
-                            fireBottomLat = Double.valueOf(address.bottom_lat);
+                            fireLeftLong = address.left_log;
+                            fireRightLong = address.right_log;
+                            fireTopLat = address.top_lat;
+                            fireBottomLat = address.bottom_lat;
 
                             /**
                              * Condition to check whether the latitude and longitude retrieved upon dragging the marker falls on specific grid
                              * Address is displayed of the particular grid when user drags and points to that grid
                              */
                             if(lat <= fireTopLat && lat > fireBottomLat && lon <= fireRightLong && lon > fireLeftLong ){
-                                Toast.makeText(getApplicationContext(),address.standard_address,Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(),address.Standard_address,Toast.LENGTH_LONG).show();
 
                                 /**
                                  * When the marker is set; retrieves the standard address from address object
                                  */
-                                standardAddress = address.standard_address;
+                                standardAddress = address.Standard_address;
                             }
-                        }
+                       }
                     }
 
                     @Override
@@ -174,22 +168,6 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                     }
                 });
 
-
-
-                /**
-                 * shows the snippet of address
-
-                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                List<Address> addresses;
-                try{
-                    addresses = geocoder.getFromLocation(toposition.latitude, toposition.longitude,1);
-                    String address = addresses.get(0).getAddressLine(0);
-                    String city = addresses.get(0).getLocality();
-
-                    Toast.makeText(Navigation.this,"Address: " + address + " " + city,Toast.LENGTH_LONG).show();
-                }catch(IOException e){
-                    e.printStackTrace();
-                }*/
             }
         });
 
@@ -203,7 +181,9 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
             }
         });
 
-
+        /**
+         * Claim address implemented in this function
+         */
         ClaimAddress.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -214,9 +194,6 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                 final String id = currentUser.getUid();
                 //Toast.makeText(Navigation.this,id,Toast.LENGTH_LONG).show();
 
-                /**
-                 *
-                 */
                 mDatabase = FirebaseDatabase.getInstance();
                 mRef = mDatabase.getReference();
                 mRef.child("UserObject").addValueEventListener(new ValueEventListener() {
@@ -241,7 +218,7 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                                 UserObject user = new UserObject(cUser.getFullName(),cUser.getEmail(),standardAddress);
 
                                 /**
-                                 * Push the value to the database of currently signed in user
+                                 * Push the value to the database of currently signedin user
                                  */
                                 databaseUser.child(id).setValue(user);
                             }
@@ -249,15 +226,109 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                         }
 
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
 
                     }
                 });
-                //UserObject user = new UserObject(standardAddress);
+            }
+        });
 
-                //databaseUser.child(databaseUser.getKey()).setValue(user);
+        /**
+         * Navigation Implemented in this function
+         */
+        Start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                final String start_address = StartLocation.getText().toString();
+                final String end_address = EndLocation.getText().toString();
+
+
+                if(start_address.isEmpty() || end_address.isEmpty()){
+                    if(start_address.isEmpty()){
+                        StartLocation.setError("Please Provide Start Address");
+                    }
+                    else if (end_address.isEmpty()){
+                        EndLocation.setError("Please Provide End Address");
+                    }
+                }
+                else{
+                    mDatabase = FirebaseDatabase.getInstance();
+                    mRef = mDatabase.getReference();
+                    mRef.child("address").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            Double startlatitude = null;
+                            Double startlongitude = null;
+                            Double endlatitude = null;
+                            Double endlongitude = null;
+
+                            for(DataSnapshot addressObj: dataSnapshot.getChildren()){
+                                Address address = addressObj.getValue(Address.class);
+                                if(start_address.equals(address.Standard_address)){
+                                    startlatitude = address.top_lat;
+                                    startlongitude = address.right_log;
+                                }
+                                if(end_address.equals(address.Standard_address)){
+                                    endlatitude = address.top_lat;
+                                    endlongitude = address.right_log;
+                                }
+                            }
+
+                            if(startlatitude != null && endlatitude != null  && startlongitude != null && endlongitude != null){
+                                /**
+                                 * Adding Marker to start and end location
+                                 */
+                                final MarkerOptions place1 = new MarkerOptions().position(new LatLng(startlatitude,startlongitude)).title("start Location");
+                                final MarkerOptions place2 = new MarkerOptions().position(new LatLng(endlatitude,endlongitude)).title("End Location");
+                                mMap.addMarker(place1);
+                                mMap.addMarker(place2);
+
+
+                                Object[] dataTransfer = new Object[4];
+
+                                /**
+                                 * Convert Double to string
+                                 */
+                                String stringStartLatitude = Double.toString(startlatitude);
+                                String stringStartLongitude = Double.toString(startlongitude);
+                                String stringEndLatitude = Double.toString(endlatitude);
+                                String stringEndLongitude = Double.toString(endlongitude);
+
+                                String origin = "origin=" + stringStartLatitude + "," + stringStartLongitude;
+                                String destination = "&destination=" + stringEndLatitude + "," + stringEndLongitude;
+                                /**
+                                 * Url to fetch the data from google-maps-api
+                                 */
+                                String url = "https://maps.googleapis.com/maps/api/directions/json?" + origin + destination +"&mode=driving" + "&key=AIzaSyBGEvQ8nUKZJRr5D_cjvfRFXx7j86vPuGY";
+
+                                /**
+                                 * Creating object of GetDirectionClass
+                                 */
+                                GetDirectionsData getDirectionsData = new GetDirectionsData(getApplicationContext());
+                                dataTransfer[0] = mMap;
+                                dataTransfer[1] = url;
+                                dataTransfer[2] = new LatLng(startlatitude,startlongitude);
+                                dataTransfer[3] = new LatLng(endlatitude,endlongitude);
+
+                                getDirectionsData.execute(dataTransfer);
+
+                            }
+                            else{
+                                Toast.makeText(Navigation.this,"Address Not Found",Toast.LENGTH_LONG).show();
+                            }
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+                }
+
             }
         });
 
