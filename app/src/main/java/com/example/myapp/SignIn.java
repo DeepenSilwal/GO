@@ -84,7 +84,9 @@ public class SignIn extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if(!task.isSuccessful()){
-                                Toast.makeText(com.example.myapp.SignIn.this, "Not sucessfull", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(com.example.myapp.SignIn.this, "Enter Valid Email and Password", Toast.LENGTH_SHORT).show();
+
+
                             }
                             /**
                              * upon successfully sign in navigation page will be displayed using following activity
