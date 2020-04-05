@@ -1,13 +1,13 @@
 package com.example.myapp;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
-//import android.support.v4.app.FragmentActivity;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
@@ -20,6 +20,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -44,7 +45,7 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
 
     private String standardAddress;
 
-    private Polyline currentPolyline;
+    private Polyline line;
 
 
 
@@ -83,8 +84,8 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
 
         mMap = googleMap;
         // Add a marker in Kathmandu, Nepal, and move the camera.
-        LatLng Nepal = new LatLng(27.605064, 85.363617);
-        mMap.addMarker(new MarkerOptions().position(Nepal).title("Random Location").draggable(true));
+        LatLng Nepal = new LatLng(27.65601026, 85.31903609);
+        mMap.addMarker(new MarkerOptions().position(Nepal).title("Your Location").draggable(true));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Nepal));
         mMap.setMinZoomPreference(14);
         mMap.setMapType(mMap.MAP_TYPE_HYBRID);
@@ -147,11 +148,31 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                             fireTopLat = address.top_lat;
                             fireBottomLat = address.bottom_lat;
 
+
+
                             /**
                              * Condition to check whether the latitude and longitude retrieved upon dragging the marker falls on specific grid
                              * Address is displayed of the particular grid when user drags and points to that grid
                              */
-                            if(lat <= fireTopLat && lat > fireBottomLat && lon <= fireRightLong && lon > fireLeftLong ){
+                            if(lat <= fireBottomLat && lat > fireTopLat && lon <= fireRightLong && lon > fireLeftLong ){
+
+                                /**
+                                 * Adding polyline to the desired 3m square grid
+                                 */
+                                if(line != null){
+                                    line.remove();
+                                }
+
+                                line = mMap.addPolyline(new PolylineOptions()
+                                        .add(new LatLng(fireBottomLat, fireLeftLong), new LatLng(fireBottomLat, fireRightLong))
+                                        .add(new LatLng(fireBottomLat, fireLeftLong), new LatLng(fireTopLat, fireLeftLong))
+                                        .add(new LatLng(fireTopLat, fireLeftLong), new LatLng(fireTopLat, fireRightLong))
+                                        .add(new LatLng(fireTopLat, fireRightLong), new LatLng(fireBottomLat,fireRightLong))
+                                        .width(5)
+                                        .color(Color.RED));
+
+
+
                                 Toast.makeText(getApplicationContext(),address.Standard_address,Toast.LENGTH_LONG).show();
 
                                 /**
@@ -215,6 +236,9 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                                 /**
                                  * Setting the UserObject with existing username, email and adding with new address
                                  */
+                                if(standardAddress != null){
+                                    Toast.makeText(Navigation.this,"Warning: Previously claimed address is removed",Toast.LENGTH_LONG).show();
+                                }
                                 UserObject user = new UserObject(cUser.getFullName(),cUser.getEmail(),standardAddress);
 
                                 /**
@@ -222,7 +246,6 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
                                  */
                                 databaseUser.child(id).setValue(user);
                             }
-                           // Toast.makeText(Navigation.this,obj.getKey(),Toast.LENGTH_LONG).show();
                         }
 
                     }
@@ -316,7 +339,16 @@ public class Navigation extends FragmentActivity implements OnMapReadyCallback {
 
                             }
                             else{
-                                Toast.makeText(Navigation.this,"Address Not Found",Toast.LENGTH_LONG).show();
+                                if(startlatitude == null || startlongitude == null ){
+                                    Toast.makeText(Navigation.this,"Start Address Not Found",Toast.LENGTH_LONG).show();
+                                }
+                                else if(endlatitude == null || endlongitude == null){
+                                    Toast.makeText(Navigation.this,"End Address Not Found",Toast.LENGTH_LONG).show();
+                                }
+                                else{
+                                    Toast.makeText(Navigation.this,"Addresses Incorrect",Toast.LENGTH_LONG).show();
+                                }
+
                             }
 
                         }
